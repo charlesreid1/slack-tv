@@ -1,5 +1,8 @@
 # Slack TV Ideas
 
+Golly:
+- **Golly Postseason Bot** - Hellmouth Cup only, at 10/11/12/1/2/3/4
+
 Everything:
 - **Shortwave Numbers Station** — Modeled on real numbers stations (Lincolnshire Poacher, UVB-76). Posts follow strict broadcast protocols: a call sign, a count, then groups of numbers or phonetic alphabet words. The station generates encrypted streams of text formed by using plain english OTPs to encode plain english messages. Cipher challenge a la 1057boy and Cryptok.
 - **Celestial Ephemeris** — Post real astronomical ephemeris data (planet positions, moon phase, sunrise/sunset for your latitude) formatted as terse navigational almanac entries. No embellishment, no astrology — just the raw numbers of where things actually are in the sky right now. The channel is a clock that runs on planetary mechanics.
