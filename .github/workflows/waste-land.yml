@@ -1,0 +1,32 @@
+name: The Waste Land
+
+on:
+  schedule:
+    # Run at the top of every hour
+    - cron: '0 * * * *'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  post-line:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up virtual environment and install dependencies
+        run: |
+          python -m venv waste-land/.venv
+          waste-land/.venv/bin/pip install --upgrade pip
+          waste-land/.venv/bin/pip install -r waste-land/requirements.txt
+
+      - name: Post next line to Slack
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.WASTE_LAND_CHANNEL_ID }}
+        run: waste-land/.venv/bin/python waste-land/notifier.py
