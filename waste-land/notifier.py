@@ -10,12 +10,12 @@ SLACK_API_URL = "https://slack.com/api/chat.postMessage"
 
 # The Waste Land by T.S. Eliot (1922) — public domain
 # 434 lines. At one line per hour, the poem loops every ~18 days.
-# Footnotes (from Eliot's original notes) are sent as threaded replies.
 def load_poem_lines():
     """Load poem from poem.txt, strip whitespace, discard empty lines."""
-    with open("poem.txt", "r", encoding="utf-8") as f:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    poem_path = os.path.join(script_dir, "poem.txt")
+    with open(poem_path, "r", encoding="utf-8") as f:
         lines = [line.strip() for line in f]
-        # Filter out empty lines
         return [line for line in lines if line]
 
 LINES = load_poem_lines()
@@ -61,20 +61,14 @@ def post_line():
         return
 
     idx = get_current_line_index()
-    line_text, footnote = LINES[idx]
+    line_text = LINES[idx]
 
     pacific_tz = pytz.timezone("America/Los_Angeles")
     now_pt = datetime.now(pacific_tz).strftime("%Y-%m-%d %H:%M PT")
     print(f"[{now_pt}] Posting line {idx + 1}/{TOTAL_LINES}")
 
-    display = "\u2014" if not line_text else line_text
-
-    result = send_slack_message(token, channel, display)
-    print(f"  Posted: {display[:60]}")
-
-    if footnote and result.get("ts"):
-        send_slack_message(token, channel, f"_{footnote}_", thread_ts=result["ts"])
-        print(f"  Footnote posted as thread reply.")
+    send_slack_message(token, channel, line_text)
+    print(f"  Posted: {line_text[:60]}")
 
 
 if __name__ == "__main__":
