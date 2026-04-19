@@ -10,12 +10,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout channel directory
-        uses: actions/checkout@v5
-        with:
-          sparse-checkout: waste-land
-          sparse-checkout-cone-mode: true
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
