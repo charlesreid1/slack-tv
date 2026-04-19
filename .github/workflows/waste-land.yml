@@ -2,16 +2,15 @@ name: The Waste Land
 
 on:
   schedule:
-    - cron: '35 * * * *'
+    - cron: '40 * * * *'
   workflow_dispatch:
 
 jobs:
   post-line:
     runs-on: ubuntu-latest
-    # Disable automatic checkout in Gitea Actions
     steps:
-      - name: Skip automatic checkout
-        run: echo "Skipping automatic checkout"
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
