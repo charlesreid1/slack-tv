@@ -2,7 +2,7 @@ name: The Waste Land
 
 on:
   schedule:
-    - cron: '58 * * * *'
+    - cron: '5 * * * *'
   workflow_dispatch:
 
 jobs:
