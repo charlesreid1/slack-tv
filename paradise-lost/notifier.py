@@ -30,8 +30,8 @@ TOTAL_LINES = len(LINES)
 
 def get_current_line_index():
     now = datetime.utcnow()
-    hours_since_epoch = int(now.timestamp()) // 3600
-    return hours_since_epoch % TOTAL_LINES
+    half_hours_since_epoch = int(now.timestamp()) // 1800
+    return half_hours_since_epoch % TOTAL_LINES
 
 
 def get_book_for_line(lines, idx):
