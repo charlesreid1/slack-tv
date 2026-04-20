@@ -1,42 +1,31 @@
-# GitHub Actions Workflow Guide
+# Gitea Actions Workflow Guide
 
-When creating workflows for new Slack TV channels, follow these principles to keep runs fast and cheap.
+Workflows run on a self-hosted Gitea Actions runner (not GitHub Actions). Follow these principles to keep runs fast and lean.
 
-## Use what the runner already has
+## Runner and available images
 
-`ubuntu-latest` comes with Python 3, `requests`, and `pytz` preinstalled. Do not add a `setup-python` step or create a virtual environment unless you need a package that isn't already on the runner.
+The runner is configured in the `pod-charlesreid1` repository under `d-gitea/runner/config.yaml`. Available labels and their backing Docker images:
 
-```yaml
-# Good: just run the script directly
-- run: python channel-name/notifier.py
+| Label | Image |
+|---|---|
+| `alpine` | `python:3.12-alpine` (~50 MB, has python3+pip; install extras with `apk add --no-cache`) |
+| `ubuntu-latest` | `catthehacker/ubuntu:act-22.04` |
+| `ubuntu-22.04` | `catthehacker/ubuntu:act-22.04` |
+| `ubuntu-20.04` | `catthehacker/ubuntu:act-20.04` |
+| `ubuntu-24.04` | `catthehacker/ubuntu:act-22.04` |
 
-# Bad: unnecessary setup
-- uses: actions/setup-python@v6
-- run: |
-    python -m venv .venv
-    .venv/bin/pip install -r requirements.txt
-    .venv/bin/python notifier.py
-```
+If a channel needs a container image that isn't listed above, add a new label entry in `pod-charlesreid1/d-gitea/runner/config.yaml`.
 
-If a future channel needs packages beyond what the runner provides, install them with `pip install --quiet` directly (no venv).
+Use `ubuntu-latest` for most channels.
 
-## Sparse checkout
+## Steps
 
-Each workflow only needs its own channel directory. Use sparse checkout so the runner doesn't clone the entire repo.
+A channel workflow has four steps:
 
-```yaml
-- uses: actions/checkout@v5
-  with:
-    sparse-checkout: channel-name
-    sparse-checkout-cone-mode: true
-```
-
-## Minimal step count
-
-A channel workflow should have exactly two steps:
-
-1. Sparse checkout of the channel directory
-2. Run the script
+1. Checkout the repository (`actions/checkout@v4`)
+2. Set up Python (`actions/setup-python@v5`, version `3.11`)
+3. Install dependencies (`pip install -r channel-name/requirements.txt`)
+4. Run the script
 
 ## Template
 
@@ -45,19 +34,25 @@ name: Channel Name
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '5 * * * *'
   workflow_dispatch:
 
 jobs:
   post-line:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout channel directory
-        uses: actions/checkout@v5
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          sparse-checkout: channel-name
-          sparse-checkout-cone-mode: true
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r channel-name/requirements.txt
 
       - name: Post next line to Slack
         env:

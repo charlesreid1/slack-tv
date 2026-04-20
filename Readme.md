@@ -15,3 +15,7 @@ A channel directory contains a `notifier.py` (what to post and how the bot appea
 ## Setup
 
 See [SETUP.md](SETUP.md) for Slack app creation, GitHub secrets, and how to add new channels.
+
+## Slack TV Channel Directory
+
+- `waste-land/` - **The Waste Land, One Line Per Hour** — Eliot's poem is 434 lines. At one line per hour, it takes ~18 days to complete, then loops. The line-per-hour pace is critical: each line sits alone in the channel long enough to be read as a standalone fragment, which is how the poem actually works — collage, juxtaposition, voices interrupting each other. The footnotes post as threaded replies.
