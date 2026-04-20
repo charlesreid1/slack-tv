@@ -1,0 +1,13 @@
+please examine the @waste-land/ slack notifier bot and use it as a template.
+
+we would like to create a Paradise Lost slack notifier bot that uses a similar arrangement
+but has 12 books contained in the poem.txt, each one starts with a single line that just says
+"Book I" or "Book II" or etc.
+
+The slack notifier bot should post hourly, just like waste-land bot.
+
+However, Paradise Lost consists of 12 books. The script that posts the notifications should,
+in a stateless way,
+- know which book it is on
+- set the bot username (Paradise Lost Book I) and bot icon (icon01.png, icon02.png, etc) accordingly
+
