@@ -1,0 +1,37 @@
+I want to create a notifier kind of like @waste-land but with more customized
+logic. instead of sending notifications that are lines of a poem sent one
+per hour, we are going to check an API during a specific time slot.
+
+we are going to have a star cup notifier and a hellmouth cup notifier. Star
+cup notifier runs Tuesday and Wednesday, hellmouth cup notifier runs Friday,
+Saturday, Sunday. Star Cup notifier will start at 5 AM Pacific, Hellmouth Cup
+notifier will start at 8 AM Pacific.
+
+Both notifiers will hit an API /mode endpoint that will indicate the state of
+the game simulator. the mode shifts from 21 (waiting for round 1 series of
+postseason to begin), to 31 (round 1 series of postseason ongoing), to 22
+(waiting for round 2 series of postseason to begin), to 32 (round 2 series of
+postseason ongoing), to 23 (waiting for final cup series of postseason to
+begin), to 33 (final cup series of postseason is ongoing), to 40 (postseason
+is over).
+
+The procedure for the notifications will work as follows.
+
+at the top of each hour (minute 1) during each specified window:
+- check the mode 
+- if the mode is 31, 32, or 33, the series is ongoing.
+    - if the game description has "Game 1" in the title, it is the notification of the series. send a notification
+      that says "The XYZ Series is starting now!"
+    - if the game description has any other non-1 game number in the title, the series is ongoing. send a
+      notification that has yesterday's game outcome/scores.
+    - for each day, if the series is ongoing, and a matchup occurred yesterday but not today, determine who won
+      the series, and the notification should announce who won the series.
+- if the mode is 21, the postseason has not started yet, and there is nothing to do.
+- if the mode is 22, and it is Friday, check if less than one hour has elapsed, if so, announce the outcome of
+  round 1 of the postseason
+- if the mode is 22, and it is Saturday, there is nothing to do.
+- if the mode is 23, and it is Saturday, check if less than one hour has elapsed, if so, announce the outcome of
+  round 2 of the postseason
+- if the mode is 23, and it is Sunday, there is nothing to do.
+- if the mode is 40, and less than one hour has elapsed, announce the outcome of the final cup series.
+

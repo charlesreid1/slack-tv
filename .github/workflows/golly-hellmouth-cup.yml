@@ -1,0 +1,31 @@
+name: Hellmouth Cup Notifier
+
+on:
+  schedule:
+    # Every hour at minute 1, Friday through Sunday UTC
+    # 8 AM Pacific = 15:00 UTC (PDT) or 16:00 UTC (PST)
+    # Run every hour Fri-Sun UTC to cover both; script checks Pacific time
+    - cron: '1 * * * 5,6,0'
+  workflow_dispatch:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r golly-notifier/requirements.txt
+
+      - name: Run Hellmouth Cup notifier
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.GOLLY_NOTIFIER_CHANNEL_ID }}
+        run: python golly-notifier/notifier.py hellmouth
