@@ -19,3 +19,5 @@ See [SETUP.md](SETUP.md) for Slack app creation, GitHub secrets, and how to add 
 ## Slack TV Channel Directory
 
 - `waste-land/` - **The Waste Land, One Line Per Hour** — Eliot's poem is 434 lines. At one line per hour, it takes ~18 days to complete, then loops. The line-per-hour pace is critical: each line sits alone in the channel long enough to be read as a standalone fragment, which is how the poem actually works — collage, juxtaposition, voices interrupting each other. The footnotes post as threaded replies.
+- `dactylic-odyssey` - **The Odyssey in Dactylic Drip** — Post 5 lines of the Fagles (or Lattimore, or Fitzgerald) translation every 4 hours. The Odyssey is ~12,110 lines. At 30 lines/day, the full poem takes ~403 days — just over a year. A 5-line chunk is roughly one complete Homeric image or action beat. The year-long duration mirrors the scale of the journey itself. When it finishes, start the Iliad.
+
