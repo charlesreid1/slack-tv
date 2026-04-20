@@ -77,7 +77,7 @@ def post_line():
     book_num = get_book_for_line(LINES, idx)
     roman = {v: k for k, v in ROMAN_TO_INT.items()}[book_num]
     username = f"Paradise Lost Book {roman}"
-    icon_url = f"{ICON_URL_BASE}/icon{book_num:02d}.png"
+    icon_url = f"{ICON_URL_BASE}/icon{book_num:02d}.jpg"
 
     pacific_tz = pytz.timezone("America/Los_Angeles")
     now_pt = datetime.now(pacific_tz).strftime("%Y-%m-%d %H:%M PT")
