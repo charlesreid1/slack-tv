@@ -4,7 +4,7 @@ from datetime import datetime
 import pytz
 
 BOT_USERNAME = "The Waste Land"
-BOT_ICON_URL = "https://raw.githubusercontent.com/charlesreid1/slack-tv/main/waste-land/icon.png"
+BOT_ICON_URL = "https://git.charlesreid1.com/charlesreid1/slack-tv/raw/branch/main/waste-land/icon.png"
 
 SLACK_API_URL = "https://slack.com/api/chat.postMessage"
 
