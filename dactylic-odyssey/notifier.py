@@ -26,10 +26,13 @@ TOTAL_CHUNKS = TOTAL_LINES // LINES_PER_POST
 
 
 def get_current_chunk_index():
-    """Deterministic chunk index: advances every HOURS_PER_POST hours since epoch."""
-    now = datetime.utcnow()
-    periods_since_epoch = int(now.timestamp()) // (3600 * HOURS_PER_POST)
-    return periods_since_epoch % TOTAL_CHUNKS
+    """Deterministic chunk index: advances every HOURS_PER_POST hours since 10:00 AM Pacific on 2026-04-20."""
+    pacific_tz = pytz.timezone("America/Los_Angeles")
+    anchor = pacific_tz.localize(datetime(2026, 4, 20, 10, 0, 0))
+    now = datetime.now(pacific_tz)
+    elapsed_seconds = (now - anchor).total_seconds()
+    periods_since_anchor = max(0, int(elapsed_seconds)) // (3600 * HOURS_PER_POST)
+    return periods_since_anchor % TOTAL_CHUNKS
 
 
 def send_slack_message(token, channel, text):
