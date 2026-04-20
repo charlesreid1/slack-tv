@@ -9,7 +9,7 @@ BOT_ICON_URL = "https://git.charlesreid1.com/charlesreid1/slack-tv/raw/branch/ma
 SLACK_API_URL = "https://slack.com/api/chat.postMessage"
 
 LINES_PER_POST = 5
-HOURS_PER_POST = 4
+HOURS_PER_POST = 1
 
 
 def load_poem_lines():
