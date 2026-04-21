@@ -68,20 +68,26 @@ def send_slack_message(token, channel, text, username, icon_url):
     return data
 
 
-def extract_game_number(description):
-    m = re.search(r"Game (\d+)", description)
-    if m:
-        return int(m.group(1))
-    return None
+
+def format_matchup(g):
+    """Two-line hockey-bot style: bold name line, then abbr/score line."""
+    name_line = f"*{g['team1Name']} vs. {g['team2Name']}*"
+    score_line = f"{g['team1Abbr']}: {g['team1Score']} | {g['team2Abbr']}: {g['team2Score']} | Final"
+    return [name_line, score_line]
 
 
+def format_current_games(current_games):
+    lines = []
+    for g in sorted(current_games, key=lambda x: x.get("description", "")):
+        w1, l1 = g["team1SeriesWinLoss"]
+        w2, l2 = g["team2SeriesWinLoss"]
+        t1 = f"{g['team1Name']} ({w1}-{l1})" if w1 or l1 else g["team1Name"]
+        t2 = f"{g['team2Name']} ({w2}-{l2})" if w2 or l2 else g["team2Name"]
+        lines.append(f"*{t1} vs. {t2}*")
+    return lines
 
-def format_game_score(game):
-    return f"{game['team1Name']} {game['team1Score']} - {game['team2Name']} {game['team2Score']}"
 
-
-
-def build_notification(cup_config, mode_data, postseason):
+def build_notification(cup_config, mode_data, postseason, current_games=None):
     mode = mode_data["mode"]
     elapsed = mode_data.get("elapsed", 0)
     cup_name = cup_config["cup_name"]
@@ -105,20 +111,19 @@ def build_notification(cup_config, mode_data, postseason):
         series_data = postseason.get(series_key, [])
 
         if series_day == 1:
-            return f"The {series_name} is starting now!"
+            lines = [f"*{series_name} is starting now!*"]
+            if current_games:
+                lines.extend(format_current_games(current_games))
+            return "\n".join(lines)
 
         if series_data:
             yesterday_games = series_data[-1]
             lines = [f"*{series_name} Update*"]
             for g in yesterday_games:
-                game_num = extract_game_number(g.get("description", ""))
-                winner = g["team1Name"] if g["team1Score"] > g["team2Score"] else g["team2Name"]
-                lines.append(
-                    f"Game {game_num}: {format_game_score(g)} ({winner} wins)"
-                )
                 w1, l1 = g["team1SeriesWinLoss"]
                 w2, l2 = g["team2SeriesWinLoss"]
-                lines.append(f"  Series: {g['team1Name']} {w1}-{l1}, {g['team2Name']} {w2}-{l2}")
+                lines.extend(format_matchup(g))
+                lines.append(f"Series: {g['team1Name']} {w1}-{l1}, {g['team2Name']} {w2}-{l2}")
             return "\n".join(lines)
 
         return None
@@ -196,7 +201,10 @@ def run(cup_key):
     postseason = fetch_json(f"{api_base}/postseason")
     print(f"  Postseason series keys: {list(postseason.keys())}")
 
-    message = build_notification(cup, mode_data, postseason)
+    current_games = fetch_json(f"{api_base}/currentGames")
+    print(f"  Current games: {len(current_games)}")
+
+    message = build_notification(cup, mode_data, postseason, current_games)
 
     if message:
         print(f"  Sending: {message[:80]}")
