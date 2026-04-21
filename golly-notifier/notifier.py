@@ -114,9 +114,6 @@ def build_notification(cup_config, mode_data, postseason, current_games=None):
         return None
 
     if mode in (31, 32, 33):
-        if not just_entered:
-            return None
-
         if mode == 33:
             series_key = cup_series_key
         else:
@@ -126,14 +123,14 @@ def build_notification(cup_config, mode_data, postseason, current_games=None):
         series_day = (elapsed // 3600) + 1
         series_data = postseason.get(series_key, [])
 
-        if series_day == 1:
+        if just_entered and series_day == 1:
             site_link = f"<{site_base}|{site_base.replace('https://', '')}>" if site_base else ""
             lines = [f"{cup_name}: {series_name} is starting now! {site_link}".strip()]
             if current_games:
                 lines.extend(format_current_games(current_games, site_base))
             return "\n".join(lines)
 
-        if series_data:
+        if just_entered and series_data:
             yesterday_games = series_data[-1]
             lines = [f"*{series_name} Update*"]
             for g in yesterday_games:
@@ -141,6 +138,15 @@ def build_notification(cup_config, mode_data, postseason, current_games=None):
                 w2, l2 = g["team2SeriesWinLoss"]
                 lines.extend(format_matchup(g))
                 lines.append(f"Series: {g['team1Name']} {w1}-{l1}, {g['team2Name']} {w2}-{l2}")
+            if current_games:
+                lines.append("")
+                lines.append(f"*Today's Games*")
+                lines.extend(format_current_games(current_games, site_base))
+            return "\n".join(lines)
+
+        if current_games:
+            lines = [f"*{series_name}*"]
+            lines.extend(format_current_games(current_games, site_base))
             return "\n".join(lines)
 
         return None
