@@ -114,9 +114,6 @@ def build_notification(cup_config, mode_data, postseason, current_games=None):
         return []
 
     if mode in (31, 32, 33):
-        if not just_entered:
-            return []
-
         if mode == 33:
             series_key = cup_series_key
         else:
@@ -135,7 +132,7 @@ def build_notification(cup_config, mode_data, postseason, current_games=None):
 
         messages = []
 
-        if just_entered and series_data:
+        if series_data:
             yesterday_games = series_data[-1]
             outcome_lines = [f"*{series_name} Results*"]
             for g in yesterday_games:
@@ -165,7 +162,7 @@ def build_notification(cup_config, mode_data, postseason, current_games=None):
 
         if current_games:
             upcoming_lines = [f"*{series_name} — Today's Games*"]
-            upcoming_lines.extend(format_current_games(current_games))
+            upcoming_lines.extend(format_current_games(current_games, site_base))
             messages.append("\n".join(upcoming_lines))
 
         return messages
