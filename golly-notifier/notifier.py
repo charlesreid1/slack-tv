@@ -10,6 +10,7 @@ SLACK_API_URL = "https://slack.com/api/chat.postMessage"
 CUPS = {
     "star": {
         "api_base": "https://cloud.star.vii.golly.life",
+        "site_base": "https://star.vii.golly.life",
         "cup_name": "Star Cup",
         "cup_series_key": "SCS",
         "bot_username": "Star Cup",
@@ -19,6 +20,7 @@ CUPS = {
     },
     "hellmouth": {
         "api_base": "https://cloud.vii.golly.life",
+        "site_base": "https://vii.golly.life",
         "cup_name": "Hellmouth Cup",
         "cup_series_key": "HCS",
         "bot_username": "Hellmouth Cup",
@@ -76,14 +78,27 @@ def format_matchup(g):
     return [name_line, score_line]
 
 
-def format_current_games(current_games):
+def game_link(site_base, game):
+    game_id = game.get("id", "")
+    desc = game.get("description", "")
+    match = re.match(r"Game (\d+)", desc)
+    label = f"Game {match.group(1)}" if match else "Watch"
+    url = f"{site_base}/simulator/index.html?gameId={game_id}"
+    return f"<{url}|{label}>"
+
+
+def format_current_games(current_games, site_base=None):
     lines = []
     for g in sorted(current_games, key=lambda x: x.get("description", "")):
         w1, l1 = g["team1SeriesWinLoss"]
         w2, l2 = g["team2SeriesWinLoss"]
         t1 = f"{g['team1Name']} ({w1}-{l1})" if w1 or l1 else g["team1Name"]
         t2 = f"{g['team2Name']} ({w2}-{l2})" if w2 or l2 else g["team2Name"]
-        lines.append(f"*{t1} vs. {t2}*")
+        if site_base:
+            link = game_link(site_base, g)
+            lines.append(f"{t1} vs. {t2}: {link}")
+        else:
+            lines.append(f"*{t1} vs. {t2}*")
     return lines
 
 
@@ -92,6 +107,7 @@ def build_notification(cup_config, mode_data, postseason, current_games=None):
     elapsed = mode_data.get("elapsed", 0)
     cup_name = cup_config["cup_name"]
     cup_series_key = cup_config["cup_series_key"]
+    site_base = cup_config.get("site_base", "")
     just_entered = elapsed < 3600
 
     if mode == 21:
@@ -111,9 +127,10 @@ def build_notification(cup_config, mode_data, postseason, current_games=None):
         series_data = postseason.get(series_key, [])
 
         if series_day == 1:
-            lines = [f"*{series_name} is starting now!*"]
+            site_link = f"<{site_base}|{site_base.replace('https://', '')}>" if site_base else ""
+            lines = [f"{cup_name}: {series_name} is starting now! {site_link}".strip()]
             if current_games:
-                lines.extend(format_current_games(current_games))
+                lines.extend(format_current_games(current_games, site_base))
             return "\n".join(lines)
 
         if series_data:
