@@ -9,7 +9,7 @@ SLACK_API_URL = "https://slack.com/api/chat.postMessage"
 
 CUPS = {
     "star": {
-        "api_base": "https://cloud.star-vii.golly.life",
+        "api_base": "https://cloud.star.vii.golly.life",
         "cup_name": "Star Cup",
         "cup_series_key": "SCS",
         "bot_username": "Star Cup",
