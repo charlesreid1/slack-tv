@@ -111,9 +111,12 @@ def build_notification(cup_config, mode_data, postseason, current_games=None):
     just_entered = elapsed < 3600
 
     if mode == 21:
-        return None
+        return []
 
     if mode in (31, 32, 33):
+        if not just_entered:
+            return []
+
         if mode == 33:
             series_key = cup_series_key
         else:
@@ -127,46 +130,65 @@ def build_notification(cup_config, mode_data, postseason, current_games=None):
             site_link = f"<{site_base}|{site_base.replace('https://', '')}>" if site_base else ""
             lines = [f"{cup_name}: {series_name} is starting now! {site_link}".strip()]
             if current_games:
-                lines.extend(format_current_games(current_games, site_base))
-            return "\n".join(lines)
+                lines.extend(format_current_games(current_games))
+            return ["\n".join(lines)]
+
+        messages = []
 
         if just_entered and series_data:
             yesterday_games = series_data[-1]
-            lines = [f"*{series_name} Update*"]
+            outcome_lines = [f"*{series_name} Results*"]
             for g in yesterday_games:
+                outcome_lines.extend(format_matchup(g))
                 w1, l1 = g["team1SeriesWinLoss"]
                 w2, l2 = g["team2SeriesWinLoss"]
-                lines.extend(format_matchup(g))
-                lines.append(f"Series: {g['team1Name']} {w1}-{l1}, {g['team2Name']} {w2}-{l2}")
+                outcome_lines.append(f"Series: {g['team1Name']} {w1}-{l1}, {g['team2Name']} {w2}-{l2}")
+
+            today_pairs = set()
             if current_games:
-                lines.append("")
-                lines.append(f"*Today's Games*")
-                lines.extend(format_current_games(current_games, site_base))
-            return "\n".join(lines)
+                for g in current_games:
+                    pair = tuple(sorted([g["team1Name"], g["team2Name"]]))
+                    today_pairs.add(pair)
+
+            for g in yesterday_games:
+                pair = tuple(sorted([g["team1Name"], g["team2Name"]]))
+                if pair not in today_pairs:
+                    w1, _ = g["team1SeriesWinLoss"]
+                    w2, _ = g["team2SeriesWinLoss"]
+                    if w1 > w2:
+                        winner, loser, wl = g["team1Name"], g["team2Name"], f"{w1}-{w2}"
+                    else:
+                        winner, loser, wl = g["team2Name"], g["team1Name"], f"{w2}-{w1}"
+                    outcome_lines.append(f"{winner} wins the series over {loser} ({wl})")
+
+            messages.append("\n".join(outcome_lines))
 
         if current_games:
-            lines = [f"*{series_name}*"]
-            lines.extend(format_current_games(current_games, site_base))
-            return "\n".join(lines)
+            upcoming_lines = [f"*{series_name} — Today's Games*"]
+            upcoming_lines.extend(format_current_games(current_games))
+            messages.append("\n".join(upcoming_lines))
 
-        return None
+        return messages
 
     if mode == 22:
         if not just_entered:
-            return None
-        return announce_series_outcome(postseason, "LDS", "Division Series")
+            return []
+        result = announce_series_outcome(postseason, "LDS", "Division Series")
+        return [result] if result else []
 
     if mode == 23:
         if not just_entered:
-            return None
-        return announce_series_outcome(postseason, "LCS", "League Championship Series")
+            return []
+        result = announce_series_outcome(postseason, "LCS", "League Championship Series")
+        return [result] if result else []
 
     if mode == 40:
         if not just_entered:
-            return None
-        return announce_series_outcome(postseason, cup_series_key, cup_name)
+            return []
+        result = announce_series_outcome(postseason, cup_series_key, cup_name)
+        return [result] if result else []
 
-    return None
+    return []
 
 
 def announce_series_outcome(postseason, series_key, series_name):
@@ -227,12 +249,13 @@ def run(cup_key):
     current_games = fetch_json(f"{api_base}/currentGames")
     print(f"  Current games: {len(current_games)}")
 
-    message = build_notification(cup, mode_data, postseason, current_games)
+    messages = build_notification(cup, mode_data, postseason, current_games)
 
-    if message:
-        print(f"  Sending: {message[:80]}")
-        send_slack_message(token, channel, message, cup["bot_username"], cup["bot_icon_url"])
-        print("  Sent.")
+    if messages:
+        for i, msg in enumerate(messages, 1):
+            print(f"  Sending message {i}/{len(messages)}: {msg[:80]}")
+            send_slack_message(token, channel, msg, cup["bot_username"], cup["bot_icon_url"])
+            print(f"  Sent message {i}.")
     else:
         print("  No notification to send.")
 
