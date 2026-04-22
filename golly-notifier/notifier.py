@@ -78,9 +78,13 @@ def send_slack_message(token, channel, text, username, icon_url):
 
 
 
-def format_matchup(g):
-    """Two-line hockey-bot style: bold name line, then abbr/score line."""
-    name_line = f"*{g['team1Name']} vs. {g['team2Name']}*"
+def format_matchup(g, site_base=None):
+    """Two-line hockey-bot style: bold name line (with game link), then abbr/score line."""
+    if site_base:
+        link = game_link(site_base, g)
+        name_line = f"*{g['team1Name']} vs. {g['team2Name']}* | {link}"
+    else:
+        name_line = f"*{g['team1Name']} vs. {g['team2Name']}*"
     score_line = f"{g['team1Abbr']}: {g['team1Score']} | {g['team2Abbr']}: {g['team2Score']} | Final"
     return [name_line, score_line]
 
@@ -147,11 +151,7 @@ def build_notification(cup_config, mode_data, postseason, current_games=None):
             yesterday_games = series_data[yesterday_idx]
             outcome_lines = [f"*{series_name} — Day {series_day - 1} Results*"]
             for g in yesterday_games:
-                outcome_lines.extend(format_matchup(g))
-                link = game_link(site_base, g)
-                w1, l1 = g["team1SeriesWinLoss"]
-                w2, l2 = g["team2SeriesWinLoss"]
-                outcome_lines.append(f"Series: {g['team1Name']} {w1}-{l1}, {g['team2Name']} {w2}-{l2} | {link}")
+                outcome_lines.extend(format_matchup(g, site_base))
 
             today_pairs = set()
             if current_games:
