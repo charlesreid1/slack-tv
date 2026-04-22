@@ -162,12 +162,14 @@ def build_notification(cup_config, mode_data, postseason, current_games=None):
             for g in yesterday_games:
                 pair = tuple(sorted([g["team1Name"], g["team2Name"]]))
                 if pair not in today_pairs:
-                    w1, _, w2, _ = updated_series_wl(g)
+                    w1, l1, w2, l2 = updated_series_wl(g)
                     if w1 > w2:
-                        winner, loser, wl = g["team1Name"], g["team2Name"], f"{w1}-{w2}"
+                        winner, winner_wl = g["team1Name"], f"{w1}-{l1}"
+                        loser, loser_wl = g["team2Name"], f"{w2}-{l2}"
                     else:
-                        winner, loser, wl = g["team2Name"], g["team1Name"], f"{w2}-{w1}"
-                    outcome_lines.append(f"{winner} wins the series over {loser} ({wl})")
+                        winner, winner_wl = g["team2Name"], f"{w2}-{l2}"
+                        loser, loser_wl = g["team1Name"], f"{w1}-{l1}"
+                    outcome_lines.append(f"{winner} ({winner_wl}) wins the series over {loser} ({loser_wl})")
 
             messages.append("\n".join(outcome_lines))
 
@@ -220,16 +222,14 @@ def announce_series_outcome(postseason, series_key, series_name):
     last_day = series_data[-1]
     lines = [f"*{series_name} Results*"]
     for game in last_day:
-        w1, _, w2, _ = updated_series_wl(game)
+        w1, l1, w2, l2 = updated_series_wl(game)
         if w1 > w2:
-            winner = game["team1Name"]
-            loser = game["team2Name"]
-            series_wl = f"{w1}-{w2}"
+            winner, winner_wl = game["team1Name"], f"{w1}-{l1}"
+            loser, loser_wl = game["team2Name"], f"{w2}-{l2}"
         else:
-            winner = game["team2Name"]
-            loser = game["team1Name"]
-            series_wl = f"{w2}-{w1}"
-        lines.append(f"{winner} defeats {loser} ({series_wl})")
+            winner, winner_wl = game["team2Name"], f"{w2}-{l2}"
+            loser, loser_wl = game["team1Name"], f"{w1}-{l1}"
+        lines.append(f"{winner} ({winner_wl}) defeats {loser} ({loser_wl})")
     return "\n".join(lines)
 
 
