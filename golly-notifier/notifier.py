@@ -14,7 +14,7 @@ CUPS = {
         "cup_name": "Star Cup",
         "cup_series_key": "SCS",
         "bot_username": "Star Cup",
-        "bot_icon_url": "https://git.charlesreid1.com/charlesreid1/slack-tv/raw/branch/main/golly-notifier/icon-star.png",
+        "bot_icon_url": "https://git.charlesreid1.com/charlesreid1/slack-tv/raw/branch/main/golly-notifier/star-cup-icon.png",
         # weekday(): 0=Mon, 1=Tue, 2=Wed, 3=Thu, 4=Fri, 5=Sat, 6=Sun
         "schedule": {
             1: {"start_hour": 5, "duration": 20},  # Tuesday: LDS+LCS, 5 AM for 20h
@@ -27,7 +27,7 @@ CUPS = {
         "cup_name": "Hellmouth Cup",
         "cup_series_key": "HCS",
         "bot_username": "Hellmouth Cup",
-        "bot_icon_url": "https://git.charlesreid1.com/charlesreid1/slack-tv/raw/branch/main/golly-notifier/icon-hellmouth.png",
+        "bot_icon_url": "https://git.charlesreid1.com/charlesreid1/slack-tv/raw/branch/main/golly-notifier/hellmouth-cup-icon.png",
         # weekday(): 0=Mon, 1=Tue, 2=Wed, 3=Thu, 4=Fri, 5=Sat, 6=Sun
         "schedule": {
             4: {"start_hour": 8, "duration": 8},   # Friday: LDS, 8 AM for 8h
@@ -162,8 +162,7 @@ def build_notification(cup_config, mode_data, postseason, current_games=None):
             for g in yesterday_games:
                 pair = tuple(sorted([g["team1Name"], g["team2Name"]]))
                 if pair not in today_pairs:
-                    w1, _ = g["team1SeriesWinLoss"]
-                    w2, _ = g["team2SeriesWinLoss"]
+                    w1, _, w2, _ = updated_series_wl(g)
                     if w1 > w2:
                         winner, loser, wl = g["team1Name"], g["team2Name"], f"{w1}-{w2}"
                     else:
@@ -200,6 +199,19 @@ def build_notification(cup_config, mode_data, postseason, current_games=None):
     return []
 
 
+def updated_series_wl(game):
+    """Return (team1_wins, team1_losses, team2_wins, team2_losses) accounting for this game's outcome."""
+    w1, l1 = game["team1SeriesWinLoss"]
+    w2, l2 = game["team2SeriesWinLoss"]
+    if game["team1Score"] > game["team2Score"]:
+        w1 += 1
+        l2 += 1
+    else:
+        w2 += 1
+        l1 += 1
+    return w1, l1, w2, l2
+
+
 def announce_series_outcome(postseason, series_key, series_name):
     series_data = postseason.get(series_key, [])
     if not series_data:
@@ -208,8 +220,7 @@ def announce_series_outcome(postseason, series_key, series_name):
     last_day = series_data[-1]
     lines = [f"*{series_name} Results*"]
     for game in last_day:
-        w1, _ = game["team1SeriesWinLoss"]
-        w2, _ = game["team2SeriesWinLoss"]
+        w1, _, w2, _ = updated_series_wl(game)
         if w1 > w2:
             winner = game["team1Name"]
             loser = game["team2Name"]
