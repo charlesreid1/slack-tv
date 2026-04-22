@@ -15,8 +15,11 @@ CUPS = {
         "cup_series_key": "SCS",
         "bot_username": "Star Cup",
         "bot_icon_url": "https://git.charlesreid1.com/charlesreid1/slack-tv/raw/branch/main/golly-notifier/icon-star.png",
-        "days": [1, 2],  # Tuesday, Wednesday (weekday() values)
-        "start_hour": 5,
+        # weekday(): 0=Mon, 1=Tue, 2=Wed, 3=Thu, 4=Fri, 5=Sat, 6=Sun
+        "schedule": {
+            1: {"start_hour": 5, "duration": 20},  # Tuesday: LDS+LCS, 5 AM for 20h
+            2: {"start_hour": 5, "duration": 12},  # Wednesday: Cup Series, 5 AM for 12h
+        },
     },
     "hellmouth": {
         "api_base": "https://cloud.vii.golly.life",
@@ -25,16 +28,20 @@ CUPS = {
         "cup_series_key": "HCS",
         "bot_username": "Hellmouth Cup",
         "bot_icon_url": "https://git.charlesreid1.com/charlesreid1/slack-tv/raw/branch/main/golly-notifier/icon-hellmouth.png",
-        "days": [4, 5, 6],  # Friday, Saturday, Sunday
-        "start_hour": 8,
+        # weekday(): 0=Mon, 1=Tue, 2=Wed, 3=Thu, 4=Fri, 5=Sat, 6=Sun
+        "schedule": {
+            4: {"start_hour": 8, "duration": 8},   # Friday: LDS, 8 AM for 8h
+            5: {"start_hour": 8, "duration": 12},  # Saturday: LCS, 8 AM for 12h
+            6: {"start_hour": 8, "duration": 12},  # Sunday: Cup Series, 8 AM for 12h
+        },
     },
 }
 
 SERIES_NAMES = {
     "LDS": "Division Series",
-    "LCS": "League Championship Series",
+    "LCS": "Championship Series",
     "HCS": "Hellmouth VII Cup",
-    "SCS": "Star Cup Series",
+    "SCS": "Star VII Cup",
 }
 
 MODE_TO_SERIES = {
@@ -120,26 +127,31 @@ def build_notification(cup_config, mode_data, postseason, current_games=None):
             series_key = MODE_TO_SERIES[mode]
 
         series_name = SERIES_NAMES.get(series_key, series_key)
+        # hours elapsed = zero-indexed day; report one-indexed day
+        # e.g., 3700s elapsed → 3700//3600 = 1 → Day 2
         series_day = (elapsed // 3600) + 1
         series_data = postseason.get(series_key, [])
 
-        if just_entered and series_day == 1:
+        if just_entered:
             site_link = f"<{site_base}|{site_base.replace('https://', '')}>" if site_base else ""
             lines = [f"{cup_name}: {series_name} is starting now! {site_link}".strip()]
             if current_games:
-                lines.extend(format_current_games(current_games))
+                lines.extend(format_current_games(current_games, site_base))
             return ["\n".join(lines)]
 
         messages = []
 
-        if series_data:
-            yesterday_games = series_data[-1]
-            outcome_lines = [f"*{series_name} Results*"]
+        # Yesterday's results: use day-based index (series_day - 2 for 0-indexed prior day)
+        yesterday_idx = series_day - 2
+        if series_data and 0 <= yesterday_idx < len(series_data):
+            yesterday_games = series_data[yesterday_idx]
+            outcome_lines = [f"*{series_name} — Day {series_day - 1} Results*"]
             for g in yesterday_games:
                 outcome_lines.extend(format_matchup(g))
+                link = game_link(site_base, g)
                 w1, l1 = g["team1SeriesWinLoss"]
                 w2, l2 = g["team2SeriesWinLoss"]
-                outcome_lines.append(f"Series: {g['team1Name']} {w1}-{l1}, {g['team2Name']} {w2}-{l2}")
+                outcome_lines.append(f"Series: {g['team1Name']} {w1}-{l1}, {g['team2Name']} {w2}-{l2} | {link}")
 
             today_pairs = set()
             if current_games:
@@ -161,7 +173,7 @@ def build_notification(cup_config, mode_data, postseason, current_games=None):
             messages.append("\n".join(outcome_lines))
 
         if current_games:
-            upcoming_lines = [f"*{series_name} — Today's Games*"]
+            upcoming_lines = [f"*{series_name} — Day {series_day} Games*"]
             upcoming_lines.extend(format_current_games(current_games, site_base))
             messages.append("\n".join(upcoming_lines))
 
@@ -176,7 +188,7 @@ def build_notification(cup_config, mode_data, postseason, current_games=None):
     if mode == 23:
         if not just_entered:
             return []
-        result = announce_series_outcome(postseason, "LCS", "League Championship Series")
+        result = announce_series_outcome(postseason, "LCS", "Championship Series")
         return [result] if result else []
 
     if mode == 40:
@@ -228,12 +240,22 @@ def run(cup_key):
     print(f"[{now_pt.strftime('%Y-%m-%d %H:%M PT')}] Running {cup['cup_name']} notifier")
 
     weekday = now_pt.weekday()
-    if weekday not in cup["days"]:
+    schedule = cup.get("schedule", {})
+    if weekday not in schedule:
         print(f"  Not a {cup['cup_name']} day (weekday={weekday}). Skipping.")
         return
 
-    if now_pt.hour < cup["start_hour"]:
-        print(f"  Too early (hour={now_pt.hour}, start={cup['start_hour']}). Skipping.")
+    day_config = schedule[weekday]
+    start_hour = day_config["start_hour"]
+    duration = day_config["duration"]
+    end_hour = start_hour + duration
+
+    if now_pt.hour < start_hour:
+        print(f"  Too early (hour={now_pt.hour}, start={start_hour}). Skipping.")
+        return
+
+    if now_pt.hour >= end_hour:
+        print(f"  Past window (hour={now_pt.hour}, end={end_hour}). Skipping.")
         return
 
     api_base = cup["api_base"]

@@ -5,7 +5,7 @@ on:
     # Every hour at minute 1, Tuesday and Wednesday UTC
     # 5 AM Pacific = 12:00 UTC (PDT) or 13:00 UTC (PST)
     # Run every hour Tue-Wed UTC to cover both; script checks Pacific time
-    - cron: '40 * * * 2,3'
+    - cron: '1 * * * 2,3'
   workflow_dispatch:
 
 jobs:
