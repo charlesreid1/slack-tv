@@ -1,0 +1,4 @@
+# Copy this file to .environment and fill in real values.
+# Then: source .environment
+
+SLACK_BOT_TOKEN=xoxb-your-token-here
