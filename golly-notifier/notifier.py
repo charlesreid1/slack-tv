@@ -400,13 +400,13 @@ def build_notification(cup_config, mode_data, postseason, current_games=None):
                         _series_clinch_attachment(winner, winner_wl, loser, loser_wl, winner_color)
                     )
 
-            messages.append({"text": header, "attachments": result_attachments})
+            messages.append({"text": "", "attachments": result_attachments})
 
         if current_games:
             header = f"{series_name} \u2014 Day {series_day} Games"
             upcoming_attachments = [_header_attachment(header)]
             upcoming_attachments.extend(format_current_games(current_games, site_base))
-            messages.append({"text": header, "attachments": upcoming_attachments})
+            messages.append({"text": "", "attachments": upcoming_attachments})
 
         return messages
 
@@ -455,7 +455,7 @@ def announce_series_outcome(postseason, series_key, series_name):
             _series_clinch_attachment(winner, winner_wl, loser, loser_wl, winner_color)
         )
 
-    return {"text": header, "attachments": attachments}
+    return {"text": "", "attachments": attachments}
 
 
 # ---------------------------------------------------------------------------
