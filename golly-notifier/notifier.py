@@ -258,11 +258,8 @@ def _upcoming_game_attachment(g, site_base=None):
 
     fallback = f"{g['team1Name']} vs. {g['team2Name']} | Map: {map_name}"
 
-    # Use team1's color for the sidebar on upcoming games
-    sidebar_color = g.get("team1Color", "#3a3f44")
-
     return {
-        "color": sidebar_color,
+        "color": "#3a3f44",
         "blocks": blocks,
         "fallback": fallback,
     }
@@ -365,7 +362,10 @@ def build_notification(cup_config, mode_data, postseason, current_games=None):
             attachments = [_header_attachment(header_text)]
             if current_games:
                 attachments.extend(format_current_games(current_games, site_base))
-            return [{"text": header_text, "attachments": attachments}]
+            # Visible message lives in the header attachment; text is empty so
+            # it doesn't render a duplicate line.  Attachment fallback fields
+            # supply the push-notification / accessibility text.
+            return [{"text": "", "attachments": attachments}]
 
         messages = []
 
