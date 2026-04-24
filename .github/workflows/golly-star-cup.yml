@@ -2,10 +2,12 @@ name: Star Cup Notifier
 
 on:
   schedule:
-    # Every hour at minute 1, Tuesday and Wednesday UTC
-    # 5 AM Pacific = 12:00 UTC (PDT) or 13:00 UTC (PST)
-    # Run every hour Tue-Wed UTC to cover both; script checks Pacific time
-    - cron: '1 * * * 2,3'
+    # Hourly, Monday 00:00 Pacific through Wednesday 00:00 Pacific.
+    # In UTC (PDT, UTC-7): Monday 07:00 UTC through Wednesday 07:00 UTC.
+    # Script checks exact Pacific time window; cron provides UTC coverage.
+    - cron: '1 7-23 * * 1'
+    - cron: '1 * * * 2'
+    - cron: '1 0-6 * * 3'
   workflow_dispatch:
 
 jobs:

@@ -2,10 +2,13 @@ name: Hellmouth Cup Notifier
 
 on:
   schedule:
-    # Every hour at minute 1, Friday through Sunday UTC
-    # 8 AM Pacific = 15:00 UTC (PDT) or 16:00 UTC (PST)
-    # Run every hour Fri-Sun UTC to cover both; script checks Pacific time
-    - cron: '1 * * * 5,6,0'
+    # Hourly, Friday 00:00 Pacific through Sunday 20:00 Pacific.
+    # In UTC (PDT, UTC-7): Friday 07:00 UTC through Monday 03:00 UTC.
+    # Script checks exact Pacific time window; cron provides UTC coverage.
+    - cron: '1 7-23 * * 5'
+    - cron: '1 * * * 6'
+    - cron: '1 * * * 0'
+    - cron: '1 0-3 * * 1'
   workflow_dispatch:
 
 jobs:
